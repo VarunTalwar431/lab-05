@@ -1,5 +1,7 @@
 package com.example.listycity
 
+import android.R.attr.text
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,10 +10,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedTextField
@@ -21,17 +28,22 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.listycity.ui.theme.ListyCityTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CityListScreen(
     cities: List<City>,
     onAddCity: (City) -> Unit,
     onUpdateCity: (City, City) -> Unit,
+    onDeleteCity: (City) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var newCityName by remember { mutableStateOf("") }
@@ -40,6 +52,10 @@ fun CityListScreen(
     var selectedCity by remember { mutableStateOf<City?>(null) }
     var editedCityName by remember { mutableStateOf("") }
     var editedProvinceName by remember { mutableStateOf("") }
+    var openDialogBox by remember {mutableStateOf(false)}
+    var deleteCityName by remember{mutableStateOf("")}
+    var deleteProvinceName by remember {mutableStateOf("")}
+    var context = LocalContext.current
 
     Column(modifier = modifier.fillMaxSize()) {
         Row(
@@ -155,7 +171,7 @@ fun CityListScreen(
                 }
             }
         }
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(modifier = Modifier.size(400.dp)) {
             itemsIndexed(cities) { index, city ->
                 CityRow(
                     city = city,
@@ -173,8 +189,76 @@ fun CityListScreen(
                 }
             }
         }
+        Column(
+            modifier = Modifier.fillMaxSize()
+                               .padding(16.dp),
+            verticalArrangement = Arrangement.Bottom,
+            horizontalAlignment = Alignment.End
+        ) {
+        Button(
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Red,
+                contentColor = Color.White
+            ),
+            onClick = {
+                openDialogBox = true
+            }
+        ) {
+            Text(text = "Delete city")
+        }
     }
+    }
+    if (openDialogBox){
+
+
+        AlertDialog(
+            onDismissRequest = {openDialogBox = false},
+            title ={
+                Text(text="Delete City?")
+            },
+            text = {
+                Text(text ="Delete ${selectedCity?.name}, ${selectedCity?.province}?")
+            },
+            confirmButton ={
+                Button(
+                    onClick ={openDialogBox = false
+                                Toast.makeText(
+                                    context,
+                                    "City has been deleted",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                               val deleteCity = selectedCity
+                                if (deleteCity!=null){
+                                    onDeleteCity(
+                                        City(
+                                            name = deleteCity.name,
+                                            province = deleteCity.province
+                                        )
+                                    )
+                                }
+                        selectedCity=null
+                             },
+
+                ){
+                    Text(text = "Delete")
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = {openDialogBox=false}
+                ){
+                    Text(text="Cancel")
+                }
+            }
+
+
+
+        )
+    }
+
+
 }
+
 
 
 @Composable
@@ -202,18 +286,19 @@ fun CityRow(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun CityListScreenPreview() {
-    ListyCityTheme {
-        CityListScreen(
-            cities = listOf(
-                City("Edmonton", "AB"),
-                City("Vancouver", "BC"),
-                City("Calgary", "AB")
-            ),
-            onAddCity = {},
-            onUpdateCity = { _, _ -> }
-        )
-    }
-}
+
+//@Preview(showBackground = true)
+//@Composable
+//fun CityListScreenPreview() {
+//    ListyCityTheme {
+//        CityListScreen(
+//            cities = listOf(
+//                City("Edmonton", "AB"),
+//                City("Vancouver", "BC"),
+//                City("Calgary", "AB")
+//            ),
+//            onAddCity = {},
+//            onUpdateCity = { _, _ -> }
+//        )
+//    }
+//}
